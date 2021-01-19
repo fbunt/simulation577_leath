@@ -49,11 +49,11 @@ class Leath:
         less than p, add perimeter point to cluster. Else, mark point as
         inaccessible. Do something to keep cluster from leaving domain.
         """
-        rand = np.random.rand(len(self.perimeter))
+        fate = np.random.rand(len(self.perimeter)) <= self.p
         new_cluster_pts = []
         new_dead_pts = []
-        for pt, r in zip(self.perimeter, rand):
-            if self.p >= r:
+        for pt, f in zip(self.perimeter, fate):
+            if f:
                 new_cluster_pts.append(pt)
             else:
                 new_dead_pts.append(pt)
