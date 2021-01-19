@@ -3,6 +3,10 @@ import numpy as np
 from matplotlib.animation import FuncAnimation
 
 
+ALIVE = 2
+DEAD = 1
+
+
 class Leath:
     def __init__(self, n=80, p=0.6):
         self.n = n
@@ -19,7 +23,7 @@ class Leath:
         seed = (n // 2, n // 2)
         self.cluster = set([seed])
         self.world = np.zeros((n, n), dtype=np.int8)
-        self.world[seed] = 1
+        self.world[seed] = ALIVE
         self.add_perimeter(seed)
 
     def add_perimeter(self, pt):
@@ -56,9 +60,10 @@ class Leath:
         self.perimeter = set()
         for pt in new_dead_pts:
             self.dead.add(pt)
+            self.world[pt] = DEAD
         for pt in new_cluster_pts:
             self.cluster.add(pt)
-            self.world[pt] = 1
+            self.world[pt] = ALIVE
             self.add_perimeter(pt)
 
 
