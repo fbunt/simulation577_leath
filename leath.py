@@ -7,14 +7,15 @@ class Leath:
     def __init__(self, n=80, p=0.6):
         self.n = n
         self.p = p
-        self.perimeter = {}
-        # Add out of bounds
+        self.perimeter = set()
+        self.dead = set()
+        # Mark out of bounds as dead
         for i in [-1, n]:
             for j in range(0, n):
-                self.perimeter[(i, j)] = False
+                self.dead.add((i, j))
         for j in [-1, n]:
             for i in range(0, n):
-                self.perimeter[(i, j)] = False
+                self.dead.add((i, j))
         seed = (n // 2, n // 2)
         self.cluster = set([seed])
         self.world = np.zeros((n, n), dtype=np.int8)
@@ -31,8 +32,12 @@ class Leath:
             for i, j in zip([1, -1, 0, 0], [0, 0, 1, -1])
         ]
         for p in nn:
-            if p not in self.cluster and p not in self.perimeter:
-                self.perimeter[p] = True
+            if (
+                p not in self.cluster
+                and p not in self.perimeter
+                and p not in self.dead
+            ):
+                self.perimeter.add(p)
 
     def grow_cluster(self):
         """
@@ -40,17 +45,19 @@ class Leath:
         less than p, add perimeter point to cluster. Else, mark point as
         inaccessible. Do something to keep cluster from leaving domain.
         """
-        pts = [p for p, v in self.perimeter.items() if v]
-        rand = np.random.rand(len(pts))
+        rand = np.random.rand(len(self.perimeter))
         new_cluster_pts = []
-        for pt, r in zip(pts, rand):
+        new_dead_pts = []
+        for pt, r in zip(self.perimeter, rand):
             if self.p >= r:
                 new_cluster_pts.append(pt)
             else:
-                self.perimeter[pt] = False
+                new_dead_pts.append(pt)
+        self.perimeter = set()
+        for pt in new_dead_pts:
+            self.dead.add(pt)
         for pt in new_cluster_pts:
             self.cluster.add(pt)
-            self.perimeter.pop(pt, None)
             self.world[pt] = 1
             self.add_perimeter(pt)
 
@@ -68,6 +75,7 @@ class LeathAnimation:
         self.im = plt.imshow(
             self.sim.world, interpolation="none", animated=True, cmap="gray"
         )
+        plt.axis("off")
         return (self.im,)
 
     def update(self, *args):
@@ -98,6 +106,6 @@ class LeathAnimation:
 
 
 if __name__ == "__main__":
-    sim = Leath(50, 0.6)
-    anim = LeathAnimation(sim, 100)
+    sim = Leath(600, 0.6)
+    anim = LeathAnimation(sim, 1)
     anim.run()
